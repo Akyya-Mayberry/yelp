@@ -24,7 +24,7 @@ class BusinessCell: UITableViewCell {
             businessNameLabel.text = business.name
             ratingImageView.setImageWith(business.ratingImageURL!)
             addressLabel.text = business.address
-            reviewsLabel.text = "\(business.reviewCount)"
+            reviewsLabel.text = "\(business.reviewCount!) Reviews"
             distanceLabel.text = business.distance
             categoriesLabel.text = business.categories
         }
@@ -34,6 +34,8 @@ class BusinessCell: UITableViewCell {
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
+        thumbImageView.layer.cornerRadius = 3
+        thumbImageView.clipsToBounds = true
     }
 
     override func setSelected(_ selected: Bool, animated: Bool) {
