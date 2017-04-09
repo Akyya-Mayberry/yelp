@@ -8,7 +8,7 @@
 
 import UIKit
 
-// Allows the ability to capture which of the Switch cells had their onSwitch toggled
+// Allows the ability to capture which of the switch cells had their onSwitch toggled
 @objc protocol SwitchCellDelegate {
     @objc optional func SwitchCell(switchCell: SwitchCell, didChangeValue value: Bool)
 }
@@ -17,11 +17,11 @@ class SwitchCell: UITableViewCell {
     @IBOutlet weak var switchLabel: UILabel!
     @IBOutlet weak var onSwitch: UISwitch!
 
-    // if a controller specifies itself as a delegate of 
+    // If a controller specifies itself as a delegate of
     // SwitchCell, it can choose to implement the SwitchCellDelegate
-    // protocol which will allow it do get events of a SwitchCell's onSwitch action
+    // protocol which will allow it do get events of a SwitchCell's onSwitch activity
     
-    // So a class subclasses SwitchCellDelegate, optionally declare itself as a delegate
+    // A class that subclasses SwitchCellDelegate, optionally declare itself as a delegate
     // and optionally implements it's optional protocol
     weak var delegate: SwitchCellDelegate?
     
@@ -42,10 +42,9 @@ class SwitchCell: UITableViewCell {
     func switchValueChanged() {
         print("switch value has changed!")
         
-        // if I have a delegate, see if they implemented
-        // the optional switchCell function and call it if they have
+        // If I self has a delegate, see if they implemented
+        // the optional switchCell function and call it.
 
         delegate?.SwitchCell?(switchCell: self, didChangeValue: onSwitch.isOn)
     }
-
 }

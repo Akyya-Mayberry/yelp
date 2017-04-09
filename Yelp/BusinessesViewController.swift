@@ -8,46 +8,32 @@
 
 import UIKit
 
-class BusinessesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, FiltersViewControllerDelegate {
+class BusinessesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, FiltersViewControllerDelegate, UISearchBarDelegate {
     
     @IBOutlet weak var tableView: UITableView!
-    
+    let searchBar = UISearchBar()
     var businesses: [Business]!
+    var filteredData: [Business]!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
+        // Requirements to set table and autolayout
         tableView.dataSource = self
         tableView.delegate = self
         tableView.rowHeight = UITableViewAutomaticDimension
         tableView.estimatedRowHeight = 120
         
-        Business.searchWithTerm(term: "Thai", completion: { (businesses: [Business]?, error: Error?) -> Void in
-            
+        // MARK: Search bar in navigation set up Part I
+        searchBar.delegate = self
+        searchBar.sizeToFit()
+        navigationItem.titleView = searchBar
+        
+        Business.searchWithTerm(term: "Restaurants", completion: { (businesses: [Business]?, error: Error?) -> Void in
             self.businesses = businesses
+            self.filteredData = businesses
             self.tableView.reloadData()
-            
-//            if let businesses = businesses {
-//                for business in businesses {
-//                    print(business.name!)
-//                    print(business.address!)
-//                }
-//            }
-            
-            }
-        )
-        
-        
-        /* Example of Yelp search with more search options specified
-         Business.searchWithTerm("Restaurants", sort: .Distance, categories: ["asianfusion", "burgers"], deals: true) { (businesses: [Business]!, error: NSError!) -> Void in
-         self.businesses = businesses
-         
-         for business in businesses {
-         print(business.name!)
-         print(business.address!)
-         }
-         }
-         */
+        })
         
     }
     
@@ -58,8 +44,8 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        if businesses != nil {
-            return businesses.count
+        if filteredData != nil {
+            return filteredData.count
         } else {
             return 0
         }
@@ -68,7 +54,7 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "BusinessCell", for: indexPath) as! BusinessCell
         
-        cell.business = businesses[indexPath.row]
+        cell.business = filteredData[indexPath.row]
         
         return cell
     }
@@ -82,7 +68,7 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
         // is the controller of interest
         let filtersViewController = navigationController.topViewController as! FiltersViewController
         
-        // now that there is access to filtersViewController, this
+        // Now that there is access to filtersViewController, this
         // controller can be set as it's delegate and therefore get it's events
         filtersViewController.delegate = self
     }
@@ -93,13 +79,14 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
     // When the search button is tapped in the filters view, delegates of the filtersViewController
     // that implement filtersViewControllerDelegate protocol gets this action.
 
+    // MARK: Search in navigation Part II
     func filtersViewController(filtersViewController: FiltersViewController, didUpdateFilters filters: [String: AnyObject]) {
         
         var categories = filters["categories"] as? [String]
-        
-        print("I am in filterViewDelegate method, here are categories, \(categories)")
+
         // Update data, by calling new search with applied filters and
-        // passing that updated data to the view
+        // passing that updated data to the view.
+        // Currently filtering by category is only implemented.
         Business.searchWithTerm(term: "Restaurants", sort: nil, categories: categories, deals: nil)
             {(businesses, error) -> Void in
                 print("I am categories, inside of search term \(categories)")
@@ -110,4 +97,31 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
             }
     }
     
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+        self.searchBar.showsCancelButton = true
+    }
+    
+    // Remove the filtered data (maybe be built in function or something to do this)
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.showsCancelButton = false
+        searchBar.text = ""
+        filteredData = businesses
+        tableView.reloadData()
+        searchBar.resignFirstResponder()
+    }
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.resignFirstResponder()
+    }
+    
+    // Update business results if a search is in progress
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        filteredData = searchText.isEmpty ? businesses : businesses.filter { (item: Business) -> Bool in
+            return item.name?.range(of: searchText, options: .caseInsensitive, range: nil, locale: nil) != nil
+        }
+        tableView.reloadData()
+    }
 }
+
+// MARK: TODO:
+// Vamp up search capability to include other filters
