@@ -14,16 +14,17 @@ import UIKit
     @objc optional func filtersViewController(filtersViewController: FiltersViewController, didUpdateFilters filters: [String: AnyObject])
 }
 
-class FiltersViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, SwitchCellDelegate {
+class FiltersViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, SwitchCellDelegate, DealsCellDelegate {
     
     // MARK: Properties
     @IBOutlet weak var tableView: UITableView!
     var categories: [[String: String]]!
     var distance = ["1", "2", "3"]
     var sort = ["Best Matched", "Distance", "Highest Rated"]
-    var sections = ["Categories", "Distance", "Sort"]
+    var sections = ["Offer a deal", "Distance", "Sort", "Categories"]
     var switchStates = [IndexPath: Bool]() // Keep track of cell states
-    
+//    let accessoryTypes: [UITableViewCellAccessoryType] = [.none, .disclosureIndicator, .detailDisclosureButton, .checkmark, .detailButton]
+    let accessoryTypes: [UITableViewCellAccessoryType] = [.disclosureIndicator]
     // If a class uses the protocol FiltersViewControllerDelegate
     // It can optionally make itself a delegate
     weak var delegate: FiltersViewControllerDelegate?
@@ -33,6 +34,10 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
         categories = getCategories()
         tableView.dataSource = self
         tableView.delegate = self
+        tableView.register(UINib(nibName: "DealsCell", bundle: nil), forCellReuseIdentifier: "DealsCell")
+        tableView.register(UINib(nibName: "DistanceCell", bundle: nil), forCellReuseIdentifier: "DistanceCell")
+        tableView.register(UINib(nibName: "CategoriesCell", bundle: nil), forCellReuseIdentifier: "CategoriesCell")
+        tableView.register(UINib(nibName: "SortCell", bundle: nil), forCellReuseIdentifier: "SortCell")
         
     }
 
@@ -50,7 +55,7 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
         var filters = [String: AnyObject]() // I am not sure what filters is representing
         
         // Gather filters types
-        var selectedCategories = [String]()
+        let selectedCategories = [String]()
         var selectedDistance = [String]()
         var selectedSort = [String]()
         //
@@ -76,29 +81,61 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
     // Rows per section
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
-            case 0: return categories.count // Category
+            case 0: return 1 // Deals
             case 1: return distance.count // Distance
             case 2: return sort.count // Sort
-            default: return 0
+            case 3: return categories.count // Category
+            default: return 3
         }
     }
     
     // Cells
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "SwitchCell", for: indexPath) as! SwitchCell
-              cell.delegate = self
-
-        switch indexPath.section {
-            case 0: cell.switchLabel.text = categories[indexPath.row]["name"] // Category
-            case 1: cell.switchLabel.text = distance[indexPath.row] // Distance
-            case 2: cell.switchLabel.text = sort[indexPath.row] // Sort
-            default: cell.switchLabel.text = "No label"
-        }
-
-        // Restore cell states if necessary or provide default state
-        cell.onSwitch.isOn = switchStates[indexPath] ?? false
         
-        return cell
+        // Deals Cell
+        if indexPath.section == 0 {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "DealsCell", for: indexPath) as! DealsCell
+            cell.delegate = self
+            cell.onSwitch.isOn = switchStates[indexPath] ?? false
+            cell.accessoryType = accessoryTypes[indexPath.row % accessoryTypes.count]
+            return cell
+        }
+        
+//        if indexPath.section == 1 {
+//            let cell = tableView.dequeueReusableCell(withIdentifier: "DistanceCell", for: indexPath) as! DistanceCell
+//            cell.switchLabel.text = distance[indexPath.row]
+//            cell.onSwitch.isOn = switchStates[indexPath] ?? false
+//            cell.accessoryType = accessoryTypes[indexPath.row % accessoryTypes.count]
+//            cell.delegate = self
+//            return cell
+//        }
+//        
+//        if indexPath.section == 2 {
+//            let cell = tableView.dequeueReusableCell(withIdentifier: "SortCell", for: indexPath) as! SortCell
+//            cell.switchLabel.text = sort[indexPath.row]
+//            cell.onSwitch.isOn = switchStates[indexPath] ?? false
+//            cell.accessoryType = accessoryTypes[indexPath.row % accessoryTypes.count]
+//            cell.delegate = self
+//            return cell
+//        }
+//
+//        if indexPath.section == 3 {
+//            let cell = tableView.dequeueReusableCell(withIdentifier: "CategoriesCell", for: indexPath) as! CategoriesCell
+//            cell.switchLabel.text = categories[indexPath.row]["name"]
+//            cell.onSwitch.isOn = switchStates[indexPath] ?? false
+//            cell.accessoryType = accessoryTypes[indexPath.row % accessoryTypes.count]
+//            cell.delegate = self
+//            return cell
+//        }
+
+        // Basic switch cell
+        let cell = tableView.dequeueReusableCell(withIdentifier: "SwitchCell", for: indexPath) as! SwitchCell
+        cell.delegate = self
+        cell.accessoryType = accessoryTypes[indexPath.row % accessoryTypes.count]
+        cell.onSwitch.isOn = switchStates[indexPath] ?? false
+
+            return cell
+
     }
     
     // Section headers
@@ -106,11 +143,22 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
         return sections[section]
     }
     
+    func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) {
+        print("acessory clicked!")
+    }
+    
     // Update cell states
-    // Part of SwitchCellDelegate protocol
     func SwitchCell(switchCell: SwitchCell, didChangeValue value: Bool) {
         let indexPath = tableView.indexPath(for: switchCell)!
 
+        print("switch state clicked")
+        switchStates[indexPath] = value
+    }
+    
+    func DealsCell(dealsCell: DealsCell, didChangeValue value: Bool) {
+        let indexPath = tableView.indexPath(for: dealsCell)!
+        
+        print("switch state clicked")
         switchStates[indexPath] = value
     }
 

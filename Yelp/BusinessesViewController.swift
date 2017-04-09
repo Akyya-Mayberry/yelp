@@ -8,12 +8,13 @@
 
 import UIKit
 
-class BusinessesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, FiltersViewControllerDelegate, UISearchBarDelegate {
+class BusinessesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, FiltersViewControllerDelegate, UISearchBarDelegate, UIScrollViewDelegate {
     
     @IBOutlet weak var tableView: UITableView!
     let searchBar = UISearchBar()
     var businesses: [Business]!
     var filteredData: [Business]!
+    var isMoreDataLoading = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -27,6 +28,7 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
         // MARK: Search bar in navigation set up Part I
         searchBar.delegate = self
         searchBar.sizeToFit()
+        searchBar.placeholder = "Restaurants"
         navigationItem.titleView = searchBar
         
         Business.searchWithTerm(term: "Restaurants", completion: { (businesses: [Business]?, error: Error?) -> Void in
@@ -89,10 +91,7 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
         // Currently filtering by category is only implemented.
         Business.searchWithTerm(term: "Restaurants", sort: nil, categories: categories, deals: nil)
             {(businesses, error) -> Void in
-                print("I am categories, inside of search term \(categories)")
                 self.businesses = businesses
-                
-                print("I am businesses after search term \(businesses)")
                 self.tableView.reloadData()
             }
     }
@@ -120,6 +119,31 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
             return item.name?.range(of: searchText, options: .caseInsensitive, range: nil, locale: nil) != nil
         }
         tableView.reloadData()
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        // Handle scroll behavior here
+        print("%%%%%%% IM SCROLLING")
+        if (!isMoreDataLoading) {
+            isMoreDataLoading = true
+            
+            // Calculate the position of one screen length before the bottom of the results
+            let scrollViewContentHeight = tableView.contentSize.height
+            let scrollOffsetThreshold = scrollViewContentHeight - tableView.bounds.size.height
+            
+            // When the user has scrolled past the threshold, start requesting
+            if(scrollView.contentOffset.y > scrollOffsetThreshold && tableView.isDragging) {
+                isMoreDataLoading = true
+                
+                // ... Code to load more results ...
+                Business.searchWithTerm(term: "Restaurants", completion: { (businesses: [Business]?, error: Error?) -> Void in
+                    self.businesses = businesses
+                    self.filteredData = businesses
+                    self.tableView.reloadData()
+                })
+            }
+            
+        }
     }
 }
 

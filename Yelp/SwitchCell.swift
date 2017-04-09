@@ -17,6 +17,7 @@ class SwitchCell: UITableViewCell {
     @IBOutlet weak var switchLabel: UILabel!
     @IBOutlet weak var onSwitch: UISwitch!
 
+
     // If a controller specifies itself as a delegate of
     // SwitchCell, it can choose to implement the SwitchCellDelegate
     // protocol which will allow it do get events of a SwitchCell's onSwitch activity
@@ -40,7 +41,6 @@ class SwitchCell: UITableViewCell {
     
     // User toggled onSwitch
     func switchValueChanged() {
-        print("switch value has changed!")
         
         // If I self has a delegate, see if they implemented
         // the optional switchCell function and call it.
