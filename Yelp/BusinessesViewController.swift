@@ -123,7 +123,6 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         // Handle scroll behavior here
-        print("%%%%%%% IM SCROLLING")
         if (!isMoreDataLoading) {
             isMoreDataLoading = true
             

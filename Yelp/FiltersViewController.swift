@@ -14,18 +14,21 @@ import UIKit
     @objc optional func filtersViewController(filtersViewController: FiltersViewController, didUpdateFilters filters: [String: AnyObject])
 }
 
-class FiltersViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, SwitchCellDelegate, DealsCellDelegate {
+class FiltersViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, SwitchCellDelegate, DealsCellDelegate, DistanceCellDelegate, SortCellDelegate, CategoriesCellDelegate {
     
     // MARK: Properties
     @IBOutlet weak var tableView: UITableView!
+    
     var categories: [[String: String]]!
-    var distance = ["1", "2", "3"]
+    var distance = ["Auto", "0.3 miles", "5 miles", "20 miles"]
     var sort = ["Best Matched", "Distance", "Highest Rated"]
     var sections = ["Offer a deal", "Distance", "Sort", "Categories"]
     var switchStates = [IndexPath: Bool]() // Keep track of cell states
-//    let accessoryTypes: [UITableViewCellAccessoryType] = [.none, .disclosureIndicator, .detailDisclosureButton, .checkmark, .detailButton]
+    var categoriesExpandRows = false
+    var sortExpandRows = false
+    var distanceExpandRows = false
     let accessoryTypes: [UITableViewCellAccessoryType] = [.disclosureIndicator]
-    // If a class uses the protocol FiltersViewControllerDelegate
+
     // It can optionally make itself a delegate
     weak var delegate: FiltersViewControllerDelegate?
     
@@ -34,6 +37,10 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
         categories = getCategories()
         tableView.dataSource = self
         tableView.delegate = self
+        tableView.rowHeight = UITableViewAutomaticDimension
+        tableView.estimatedRowHeight = 120
+        
+        // Register nibs with custom cells
         tableView.register(UINib(nibName: "DealsCell", bundle: nil), forCellReuseIdentifier: "DealsCell")
         tableView.register(UINib(nibName: "DistanceCell", bundle: nil), forCellReuseIdentifier: "DistanceCell")
         tableView.register(UINib(nibName: "CategoriesCell", bundle: nil), forCellReuseIdentifier: "CategoriesCell")
@@ -80,65 +87,47 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
     
     // Rows per section
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        switch section {
-            case 0: return 1 // Deals
-            case 1: return distance.count // Distance
-            case 2: return sort.count // Sort
-            case 3: return categories.count // Category
-            default: return 3
+        // Offer Deals
+        if section == 0 {
+            return 1
         }
+        
+        // Distance
+        if section == 1 {
+            if distanceExpandRows {
+                return sort.count
+            } else {
+                return 1
+            }
+        }
+        
+        // Sort By
+        if section == 2 {
+            if sortExpandRows {
+                return sort.count
+            } else {
+                return 1
+            }
+        }
+        
+        // Categories
+        if section == 3 {
+            if categoriesExpandRows {
+                return categories.count
+            } else {
+                return 3
+            }
+        }
+        
+        return 3
     }
     
-    // Cells
+    // Create section cells
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
-        // Deals Cell
-        if indexPath.section == 0 {
-            let cell = tableView.dequeueReusableCell(withIdentifier: "DealsCell", for: indexPath) as! DealsCell
-            cell.delegate = self
-            cell.onSwitch.isOn = switchStates[indexPath] ?? false
-            cell.accessoryType = accessoryTypes[indexPath.row % accessoryTypes.count]
-            return cell
-        }
-        
-//        if indexPath.section == 1 {
-//            let cell = tableView.dequeueReusableCell(withIdentifier: "DistanceCell", for: indexPath) as! DistanceCell
-//            cell.switchLabel.text = distance[indexPath.row]
-//            cell.onSwitch.isOn = switchStates[indexPath] ?? false
-//            cell.accessoryType = accessoryTypes[indexPath.row % accessoryTypes.count]
-//            cell.delegate = self
-//            return cell
-//        }
-//        
-//        if indexPath.section == 2 {
-//            let cell = tableView.dequeueReusableCell(withIdentifier: "SortCell", for: indexPath) as! SortCell
-//            cell.switchLabel.text = sort[indexPath.row]
-//            cell.onSwitch.isOn = switchStates[indexPath] ?? false
-//            cell.accessoryType = accessoryTypes[indexPath.row % accessoryTypes.count]
-//            cell.delegate = self
-//            return cell
-//        }
-//
-//        if indexPath.section == 3 {
-//            let cell = tableView.dequeueReusableCell(withIdentifier: "CategoriesCell", for: indexPath) as! CategoriesCell
-//            cell.switchLabel.text = categories[indexPath.row]["name"]
-//            cell.onSwitch.isOn = switchStates[indexPath] ?? false
-//            cell.accessoryType = accessoryTypes[indexPath.row % accessoryTypes.count]
-//            cell.delegate = self
-//            return cell
-//        }
-
-        // Basic switch cell
-        let cell = tableView.dequeueReusableCell(withIdentifier: "SwitchCell", for: indexPath) as! SwitchCell
-        cell.delegate = self
-        cell.accessoryType = accessoryTypes[indexPath.row % accessoryTypes.count]
-        cell.onSwitch.isOn = switchStates[indexPath] ?? false
-
-            return cell
-
+        return makeTableViewCell(indexPath)
     }
     
-    // Section headers
+    // Create section headers
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         return sections[section]
     }
@@ -147,19 +136,105 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
         print("acessory clicked!")
     }
     
+    // Expand rows
+    func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
+        // Distance Section
+        if indexPath.section == 1 {
+            if indexPath.row == 0 {
+                if distanceExpandRows {
+                    distanceExpandRows = false
+                } else {
+                    distanceExpandRows = true
+                }
+            }
+        }
+        
+        // Sort Section
+        if indexPath.section == 2 {
+            if indexPath.row == 0 {
+                if sortExpandRows {
+                    sortExpandRows = false
+                } else {
+                    sortExpandRows = true
+                }
+            }
+        }
+        
+        // Categories Section
+        if indexPath.section == 3 {
+            if indexPath.row == 0 {
+                if categoriesExpandRows {
+                    print("want to expand rows, \(categoriesExpandRows)")
+                    categoriesExpandRows = false
+                } else {
+                    print("want to expand rows, \(categoriesExpandRows)")
+                    categoriesExpandRows = true
+                }
+            }
+        }
+        let sectionIndex = IndexSet(integer: indexPath.section)
+        tableView.reloadSections(sectionIndex, with: .automatic)
+        return indexPath
+    }
+    
     // Update cell states
     func SwitchCell(switchCell: SwitchCell, didChangeValue value: Bool) {
         let indexPath = tableView.indexPath(for: switchCell)!
-
-        print("switch state clicked")
         switchStates[indexPath] = value
     }
     
     func DealsCell(dealsCell: DealsCell, didChangeValue value: Bool) {
         let indexPath = tableView.indexPath(for: dealsCell)!
-        
-        print("switch state clicked")
         switchStates[indexPath] = value
+    }
+    
+    func DistanceCell(distanceCell: DistanceCell, didChangeValue value: Bool) {
+        let indexPath = tableView.indexPath(for: distanceCell)!
+        switchStates[indexPath] = value
+    }
+    
+    func makeTableViewCell(_ indexPath: IndexPath) -> UITableViewCell {
+        if indexPath.section == 0 {
+                let cell = tableView.dequeueReusableCell(withIdentifier: "DealsCell", for: indexPath) as! DealsCell
+                cell.delegate = self
+                cell.onSwitch.isOn = switchStates[indexPath] ?? false
+                cell.accessoryType = accessoryTypes[indexPath.row % accessoryTypes.count]
+                return cell
+        }
+        
+        if indexPath.section == 1 {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "DistanceCell", for: indexPath) as! DistanceCell
+            cell.delegate = self
+            cell.switchLabel.text = distance[indexPath.row]
+            cell.onSwitch.isOn = switchStates[indexPath] ?? false
+            cell.accessoryType = accessoryTypes[indexPath.row % accessoryTypes.count]
+            return cell
+        }
+        
+        if indexPath.section == 2 {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "SortCell", for: indexPath) as! SortCell
+            cell.delegate = self
+            cell.switchLabel.text = sort[indexPath.row]
+            cell.onSwitch.isOn = switchStates[indexPath] ?? false
+            cell.accessoryType = accessoryTypes[indexPath.row % accessoryTypes.count]
+            return cell
+        }
+        
+        if indexPath.section == 3 {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "CategoriesCell", for: indexPath) as! CategoriesCell
+            cell.delegate = self
+            cell.switchLabel.text = categories[indexPath.row]["name"]
+            cell.onSwitch.isOn = switchStates[indexPath] ?? false
+            cell.accessoryType = accessoryTypes[indexPath.row % accessoryTypes.count]
+            return cell
+        }
+    
+        let cell = tableView.dequeueReusableCell(withIdentifier: "SwitchCell", for: indexPath) as! SwitchCell
+        cell.delegate = self
+        cell.accessoryType = accessoryTypes[indexPath.row % accessoryTypes.count]
+        cell.onSwitch.isOn = switchStates[indexPath] ?? false
+        
+        return cell
     }
 
     // Yelp categories
