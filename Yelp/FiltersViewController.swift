@@ -61,11 +61,15 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
         // based on a list of filters to be sent to the API
         var filters = [String: AnyObject]() // I am not sure what filters is representing
         
-        // Gather filters types
+        // Gather filters
+//        var selectedDeals = false
+//        var selectedDistance = [String]()
+//        var selectedSort = [String]()
         let selectedCategories = [String]()
-        var selectedDistance = [String]()
-        var selectedSort = [String]()
-        //
+
+        print("#######################")
+        print("#######here is what switch states look like, \(switchStates)")
+        
 
         // Update list of filters with cateogries
         if selectedCategories.count > 0 {
@@ -164,10 +168,8 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
         if indexPath.section == 3 {
             if indexPath.row == 0 {
                 if categoriesExpandRows {
-                    print("want to expand rows, \(categoriesExpandRows)")
                     categoriesExpandRows = false
                 } else {
-                    print("want to expand rows, \(categoriesExpandRows)")
                     categoriesExpandRows = true
                 }
             }
@@ -190,6 +192,16 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
     
     func DistanceCell(distanceCell: DistanceCell, didChangeValue value: Bool) {
         let indexPath = tableView.indexPath(for: distanceCell)!
+        switchStates[indexPath] = value
+    }
+    
+    func SortCell(sortCell: SortCell, didChangeValue value: Bool) {
+        let indexPath = tableView.indexPath(for: sortCell)!
+        switchStates[indexPath] = value
+    }
+    
+    func CategoriesCell(categoriesCell: CategoriesCell, didChangeValue value: Bool) {
+        let indexPath = tableView.indexPath(for: categoriesCell)!
         switchStates[indexPath] = value
     }
     

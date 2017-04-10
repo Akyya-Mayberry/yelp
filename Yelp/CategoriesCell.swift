@@ -24,6 +24,8 @@ class CategoriesCell: UITableViewCell {
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
+        // Wait for user interaction with switch
+        onSwitch.addTarget(self, action: #selector(CategoriesCell.switchValueChanged), for: UIControlEvents.valueChanged)
     }
 
     override func setSelected(_ selected: Bool, animated: Bool) {
