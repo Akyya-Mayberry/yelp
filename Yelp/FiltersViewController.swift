@@ -65,11 +65,20 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
 //        var selectedDeals = false
 //        var selectedDistance = [String]()
 //        var selectedSort = [String]()
-        let selectedCategories = [String]()
+        var selectedCategories = [String]()
 
         print("#######################")
         print("#######here is what switch states look like, \(switchStates)")
-        
+        for (sectionRow, isSet) in switchStates {
+            if sectionRow[0] == 3 {
+                print("################ section 3!")
+                if isSet {
+                    selectedCategories.append(categories[sectionRow.row]["code"]!)
+                }
+//                print(" section is \(sectionRow[0]), row is \(sectionRow[1]), value is \(isSet)")
+            }
+        }
+        print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ here are the selected categories, \(selectedCategories)")
 
         // Update list of filters with cateogries
         if selectedCategories.count > 0 {
