@@ -85,16 +85,15 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
     func filtersViewController(filtersViewController: FiltersViewController, didUpdateFilters filters: [String: AnyObject]) {
         
         
-//        var deals = filters["deals"] as? Bool
+        var deals = filters["deals"] as? Bool
 //        var distance = filters["distance"] as?
-//        var sort = filters["sort"] as?
+        var sort = filters["sort"] as? Int
         var categories = filters["categories"] as? [String]
-        print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-        print(" I AM CATEGORIES INSIDE THE FILTERS VIEW CONTROLLER DELEGATE, \(categories)")
+
         // Update data, by calling new search with applied filters and
         // passing that updated data to the view.
         // Currently filtering by category is only implemented.
-        Business.searchWithTerm(term: "Restaurants", sort: nil, categories: categories, deals: nil)
+        Business.searchWithTerm(term: "Restaurants", sort: sort, categories: categories, deals: deals)
             {(businesses, error) -> Void in
                 self.businesses = businesses
                 self.filteredData = businesses

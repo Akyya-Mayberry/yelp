@@ -21,7 +21,7 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
     
     var categories: [[String: String]]!
     var distance = ["Auto", "0.3 miles", "5 miles", "20 miles"]
-    var sort = ["Best Matched", "Distance", "Highest Rated"]
+    var sortTypes = ["Best Matched", "Distance", "Highest Rated"]
     var sections = ["Offer a deal", "Distance", "Sort", "Categories"]
     var switchStates = [IndexPath: Bool]() // Keep track of cell states
     var categoriesExpandRows = false
@@ -62,29 +62,43 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
         var filters = [String: AnyObject]() // I am not sure what filters is representing
         
         // Gather filters
-//        var selectedDeals = false
+        var selectedDeals = false
 //        var selectedDistance = [String]()
-//        var selectedSort = [String]()
+        var selectedSort = 0
         var selectedCategories = [String]()
-
-        print("#######################")
-        print("#######here is what switch states look like, \(switchStates)")
+        
         for (sectionRow, isSet) in switchStates {
+            // Deals filter
+            if sectionRow[0] == 0 {
+                selectedDeals = isSet
+            }
+            
+            // Sort filter 
+            if sectionRow[0] == 2 {
+                switch sortTypes[sectionRow.row] {
+                case "Best Match": selectedSort = 0
+                case "Distance": selectedSort = 1
+                case "Highest Rated": selectedSort = 2
+                default: selectedSort = 0
+                }
+            }
+            
+            // Categories filter
             if sectionRow[0] == 3 {
-                print("################ section 3!")
                 if isSet {
                     selectedCategories.append(categories[sectionRow.row]["code"]!)
                 }
 //                print(" section is \(sectionRow[0]), row is \(sectionRow[1]), value is \(isSet)")
             }
         }
-        print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ here are the selected categories, \(selectedCategories)")
 
         // Update list of filters with cateogries
         if selectedCategories.count > 0 {
             filters["categories"] = selectedCategories as AnyObject? // filters dict expects key vals to be AnyObject
         }
-
+        
+        filters["deals"] = selectedDeals as AnyObject?
+        filters["sort"] = selectedSort as AnyObject?
         delegate?.filtersViewController?(filtersViewController: self, didUpdateFilters: filters)
     }
     
@@ -108,7 +122,7 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
         // Distance
         if section == 1 {
             if distanceExpandRows {
-                return sort.count
+                return sortTypes.count
             } else {
                 return 1
             }
@@ -117,7 +131,7 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
         // Sort By
         if section == 2 {
             if sortExpandRows {
-                return sort.count
+                return sortTypes.count
             } else {
                 return 1
             }
@@ -207,6 +221,26 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
     func SortCell(sortCell: SortCell, didChangeValue value: Bool) {
         let indexPath = tableView.indexPath(for: sortCell)!
         switchStates[indexPath] = value
+        
+        // Handle cases in which only one state in a section is allowed (radio button)
+        
+        // Sort Section
+        // We clear any saved states, modify the sort array, and update the rows
+        if switchStates[indexPath]! {
+            for (sectionRow, isSet) in switchStates {
+                if sectionRow.section == 2 {
+                    switchStates[sectionRow] = nil
+                }
+            }
+        
+        sortTypes.remove(at: indexPath.row)
+        sortTypes.insert(sortCell.switchLabel.text!, at: 0)
+        switchStates[[2, 0]] = true
+        
+        let sectionIndex = IndexSet(integer: indexPath.section)
+        tableView.reloadSections(sectionIndex, with: .automatic)
+        }
+        
     }
     
     func CategoriesCell(categoriesCell: CategoriesCell, didChangeValue value: Bool) {
@@ -235,7 +269,7 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
         if indexPath.section == 2 {
             let cell = tableView.dequeueReusableCell(withIdentifier: "SortCell", for: indexPath) as! SortCell
             cell.delegate = self
-            cell.switchLabel.text = sort[indexPath.row]
+            cell.switchLabel.text = sortTypes[indexPath.row]
             cell.onSwitch.isOn = switchStates[indexPath] ?? false
             cell.accessoryType = accessoryTypes[indexPath.row % accessoryTypes.count]
             return cell
