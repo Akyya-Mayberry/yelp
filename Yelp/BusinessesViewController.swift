@@ -63,16 +63,27 @@ class BusinessesViewController: UIViewController, UITableViewDataSource, UITable
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         // From this view segue to another navigation controller
+        if segue.identifier == "mainToFiltersNav" {
         let navigationController = segue.destination as! UINavigationController
         
         // Destination is the navigation controller that currently only manages
         // the filtersViewController, so the navigation controller top view controller
         // is the controller of interest
+        print("Here is the segue identifier, \(segue.identifier)")
         let filtersViewController = navigationController.topViewController as! FiltersViewController
         
         // Now that there is access to filtersViewController, this
         // controller can be set as it's delegate and therefore get it's events
         filtersViewController.delegate = self
+        }
+        
+        if segue.identifier == "mainToDetails" {
+            print("main to Details")
+            let detailsVC = segue.destination as! DetailsViewController
+            let indexPath = tableView.indexPath(for: sender as! UITableViewCell)
+            let business = businesses[(indexPath?.row)!]
+            detailsVC.business = business
+        }
     }
 
     // This controller is filterViewController delegate during prepping for a segue,

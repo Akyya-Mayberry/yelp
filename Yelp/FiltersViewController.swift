@@ -22,7 +22,7 @@ class FiltersViewController: UIViewController, UITableViewDataSource, UITableVie
     var categories: [[String: String]]!
     var distance = ["Auto", "0.3 miles", "5 miles", "20 miles"]
     var sortTypes = ["Best Matched", "Distance", "Highest Rated"]
-    var sections = ["Offer a deal", "Distance", "Sort", "Categories"]
+    var sections = ["", "Distance", "Sort", "Categories"]
     var switchStates = [IndexPath: Bool]() // Keep track of cell states
     var categoriesExpandRows = false
     var sortExpandRows = false
